@@ -1,4 +1,7 @@
 Revision history for Perl extension Crypt::CBC.
+1.24    Tue Jun  6 17:35:18 EDT 2000
+	- Fixed a bug that prevented a DES and an IDEA object from being
+		used simultaneously.
 
 1.22	Wed Jan 26 19:07:30 EST 2000
 	- Added support for Crypt::Blowfish (available from www.cryptix.org)

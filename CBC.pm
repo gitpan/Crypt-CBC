@@ -4,7 +4,7 @@ use MD5;
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '1.23';
+$VERSION = '1.24';
 
 sub new ($$;$) {
     my $class = shift;
@@ -34,9 +34,8 @@ sub new ($$;$) {
     }
 	
     # Original implementation of SSLEay used part of the key for the IV
-    # which is not a good idea.  The decryption iv is taken from
-    # the second byte of the file if present, tossing the one stored
-    # here.
+    # which is not a good idea.  We do it here as well, but override
+    # it with the second block of the incoming stream if present.
     my ($k,$iv) = $material =~ /(.{$ks})(.{$bs})/os;
 
     return bless {'crypt' => $cipher->new($k),

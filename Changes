@@ -1,5 +1,8 @@
 Revision history for Perl extension Crypt::CBC.
 
+1.10  Thu Sep 11 09:15:01 1998
+	- Changed package name to Crypt::CBC
+
 1.00  Tue Jun 16 07:37:35 1998
 	- original version; created by h2xs 1.18
 

@@ -1,10 +1,10 @@
-package CBC;
+package Crypt::CBC;
 
 use MD5;
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '1.00';
+$VERSION = '1.10';
 
 sub new ($$;$) {
     my $class = shift;
@@ -136,7 +136,7 @@ Crypt::CBC - Encrypt Data with Cipher Block Chaining Mode
 =head1 SYNOPSIS
 
   use Crypt::CBC;
-  $cipher = new CBC('my secret key','IDEA');
+  $cipher = new Crypt::CBC('my secret key','IDEA');
   $ciphertext = $cipher->encrypt("This data is hush hush");
   $plaintext = $cipher->decrypt($ciphertext);
 
@@ -156,7 +156,7 @@ DES or IDEA, you can encrypt and decrypt messages of arbitrarily long
 length.  The encrypted messages are compatible with the encryption
 format used by B<SSLeay>.
 
-To use this module, you will first create a new CBC cipher object with
+To use this module, you will first create a new Crypt::CBC cipher object with
 new().  At the time of cipher creation, you specify an encryption key
 to use and, optionally, a block encryption algorithm.  You will then
 call the start() method to initialize the encryption or decryption
@@ -167,12 +167,9 @@ operate on a whole data value at once.
 
 =head2 new()
 
-  $cipher = new CBC($key,$algorithm);
+  $cipher = new Crypt::CBC($key,$algorithm);
 
-The new() method creates a new CBC object.  Note that even though CBC
-is defined in the Crypt:: namespace, it occupies the CBC package, not
-the Crypt::CBC package.  This is arguably wrong, but is consistent
-with the way that Crypt::DES and Crypt::IDEA do it.
+The new() method creates a new Crypt::CBC object.  
 
 You must provide an encryption/decryption key, which can be any series
 of characters of any length.  Internally, the actual key used is
@@ -216,7 +213,7 @@ In a typical application you will read the plaintext from a file or
 input stream and write the result to standard output in a loop that
 might look like this:
 
-  $cipher = new CBC('hey jude!');
+  $cipher = new Crypt::CBC('hey jude!');
   $cipher->start('encrypting');
   print $cipher->crypt($_) while <>;
   print $cipher->finish();

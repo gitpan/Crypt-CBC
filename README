@@ -1,0 +1,35 @@
+This is Crypt::CBC version 1.0, a Perl-only implementation of the
+cryptographic cipher block chaining mode (CBC).  In combination with a
+block cipher such as Crypt::DES or Crypt::IDEA, you can encrypt and
+decrypt messages of arbitrarily long length.  The encrypted messages
+are compatible with the encryption format used by B<SSLeay>.
+
+In addition to this module you will need the following:
+
+1. MD5
+   Required for key and iteration vector generation.
+
+2. Crypt::DES
+   Required for the DES encryption algorithm.
+
+3. Crypt::IEA
+   Required for the IDEA encryption algorithm.
+
+You can find each of these modules on a CPAN near you.  In order to
+get the DES and IDEA modules to compile on my system (Linux), I found
+I had to change a few of the #include directives.  For Crypt::DES, I
+had to change "#include <machine/types.h>" to "#include <sys/types.h>"
+in the "des.h" file.  For Crypt::IDEA, I had to make the same change
+in the file "idea.h".  In addition, I had to change "#include
+<machine/endian.h>" to "#include <endian.h>" in the file "idea.c".
+Your mileage may vary.
+
+To Install Crypt::CBC:
+
+	1. perl Makefile.PL
+	2. make
+	3. make test
+	4. make install
+
+Lincoln D. Stein
+lstein@cshl.org

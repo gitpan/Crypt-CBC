@@ -1,4 +1,4 @@
-This is Crypt::CBC version 1.0, a Perl-only implementation of the
+This is Crypt::CBC version 1.20, a Perl-only implementation of the
 cryptographic cipher block chaining mode (CBC).  In combination with a
 block cipher such as Crypt::DES or Crypt::IDEA, you can encrypt and
 decrypt messages of arbitrarily long length.  The encrypted messages

@@ -1,5 +1,10 @@
 Revision history for Perl extension Crypt::CBC.
 
+1.20  Sun Dec 20 3:58:01 1998 MET
+	- Folded in bug fixes from Devin Carraway <aqua@sonic.net>
+	(chiefly having to do with finish() being called with a
+	zero-length buffer).
+
 1.10  Thu Sep 11 09:15:01 1998
 	- Changed package name to Crypt::CBC
 

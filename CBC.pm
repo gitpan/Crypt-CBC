@@ -4,7 +4,7 @@ use MD5;
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '1.10';
+$VERSION = '1.20';
 
 sub new ($$;$) {
     my $class = shift;
@@ -76,6 +76,7 @@ sub crypt (\$$){
     my $data = shift;
     croak "crypt() called without a preceding start()"
 	unless $self->{'civ'};
+
     $self->{'buffer'} .= $data;
     my $iv = $self->{'civ'};
     my $bs = $self->{'crypt'}->blocksize;
@@ -89,10 +90,12 @@ sub crypt (\$$){
     } else {
 	$self->{'buffer'} = $';  # what's left over
     }
-
+    $self->{'buffer'} ||= '';
+#    warn "CBC::crypt buffer = ".$self->{'buffer'};
     my ($result);
     foreach my $block (@blocks) {
 	if ($d) { # decrypting
+#	    warn "CBC dec block len = ".length($block);
 	    $result .= $iv ^ $self->{'crypt'}->decrypt($block);
 	    $iv = $block;
 	} else { # encrypting
@@ -100,6 +103,7 @@ sub crypt (\$$){
 	}
     }
     $self->{'civ'} = $iv;	        # remember the iv
+#    warn "pe buffer = ".$self->{'buffer'};
     return $result;
 }
 
@@ -107,19 +111,33 @@ sub crypt (\$$){
 sub finish (\$) {
     my $self = shift;
     my $bs = $self->{'crypt'}->blocksize;
-    my $block = $self->{'buffer'};
+    my $block = $self->{'buffer'} || '';
 
+#    warn "civ = $self->{civ}";
+   $self->{civ} ||= '';
+    
     my $result;
-    if ($self->{'decrypt'}) { #decrypting
+    if ($self->{'decrypt'}) { #decrypting	
+#	warn "CBC finish decryption blocklen = ".length($block);
 	$block = unpack("a$bs",$block); # pad and truncate to block size
-	$result = $self->{'civ'} ^ $self->{'crypt'}->decrypt($block);
-	substr($result,-unpack("C",substr($result,-1)))='';	
+	if (length($block)) {	
+		$result = $self->{'civ'} ^ $self->{'crypt'}->decrypt($block);
+		substr($result,-unpack("C",substr($result,-1)))='';	
+	} else {
+		$result = '';
+	}
     } else { # encrypting
 	# in case we had an even multiple of bs
+#	warn "CBC finish encryption blocklen = ".length($block);
 	$block = pack("C*",($bs)x$bs) unless length($block);  
-	$block .= pack("C*",($bs-length($block)) x ($bs-length($block))) 
-	    if length($block) < $bs;
-	$result = $self->{'crypt'}->encrypt($self->{'civ'} ^ $block);	
+	if (length($block)) {
+
+		$block .= pack("C*",($bs-length($block)) x ($bs-length($block))) 
+		    if length($block) < $bs;
+		$result = $self->{'crypt'}->encrypt($self->{'civ'} ^ $block);	
+	} else {
+		$result = '';
+	}
     }
     delete $self->{'civ'};
     delete $self->{'buffer'};

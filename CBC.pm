@@ -4,7 +4,7 @@ use Digest::MD5 'md5';
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '2.02';
+$VERSION = '2.03';
 
 sub new {
     my $class = shift;
@@ -71,11 +71,6 @@ sub new {
     $ks ||= $cipher =~ /blowfish/i ? 56 : 8;
     $bs ||= $ks;
 
-    if (length($key) > $ks) {
-	carp "keysize is greater than allowed keysize of $ks for cipher $cipher - using only first $ks bytes";
-	$key = substr($key, 0, $ks);
-    }
-
     if ($gkfk) {
       # generate the keysize from the
       # MD5 hash of the provided key.
@@ -88,6 +83,11 @@ sub new {
       $key = substr($material,0,$ks);
     }
 
+    if (length($key) > $ks) {
+	carp "keysize is greater than allowed keysize of $ks for cipher $cipher - using only first $ks bytes";
+	$key = substr($key, 0, $ks);
+    }
+    
     my $prepend_iv = exists $options->{'prepend_iv'} 
        ? $options->{'prepend_iv'} 
        : 1;
@@ -535,6 +535,9 @@ Please report them.
 =head1 AUTHOR
 
 Lincoln Stein, lstein@cshl.org
+
+This module is distributed under the ARTISTIC LICENSE using the same
+terms as Perl itself.
 
 =head1 SEE ALSO
 

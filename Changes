@@ -1,4 +1,7 @@
 Revision history for Perl extension Crypt::CBC.
+1.25    Thu Jun  8 11:56:28 EDT 2000
+	- Bug fix didn't get into version 1.24.  Is in version 1.25
+
 1.24    Tue Jun  6 17:35:18 EDT 2000
 	- Fixed a bug that prevented a DES and an IDEA object from being
 		used simultaneously.

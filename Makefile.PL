@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'	=> 'Crypt::CBC',
     'VERSION_FROM' => 'CBC.pm', # finds $VERSION
-    'PREREQ_PM' => {'MD5' => '1.00' },
+    'PREREQ_PM' => {'Digest::MD5' => '2.00' },
     'LIBS'	=> [''],   # e.g., '-lm' 
     'DEFINE'	=> '',     # e.g., '-DHAVE_SOMETHING' 
     'INC'	=> '',     # e.g., '-I/usr/include/other' 

@@ -1,4 +1,11 @@
 Revision history for Perl extension Crypt::CBC.
+2.01	Mon Dec 10 12:11:35 EST 2001
+	- Removed debugging code.
+
+2.00	Tue Oct 31, 2000
+	- Patches for foreign program compatibility, initialization vectors
+		and padding methods from Jody Biggs <jody.biggs@paymybills.com>
+
 1.25    Thu Jun  8 11:56:28 EDT 2000
 	- Bug fix didn't get into version 1.24.  Is in version 1.25
 

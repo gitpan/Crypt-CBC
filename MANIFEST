@@ -3,6 +3,7 @@ Changes
 MANIFEST
 README
 Makefile.PL
+cryptix-5.005.patch
 t/DES.t
 t/IDEA.t
 t/Blowfish.t

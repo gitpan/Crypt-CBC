@@ -4,7 +4,7 @@ use Digest::MD5 'md5';
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '2.08';
+$VERSION = '2.09';
 
 sub new {
     my $class = shift;
@@ -92,11 +92,16 @@ sub new {
        ? $options->{'prepend_iv'} 
        : 1;
 
+    my $pcbc = exists $options->{'pcbc'} 
+       ? $options->{'pcbc'} 
+       : 0;
+
     return bless {'crypt'     => $cipher->new($key),
 		  'iv'        => $iv,
 		  'padding'   => $padding,
 		  'blocksize' => $bs,
                   'prepend_iv' => $prepend_iv,
+                  'pcbc'      => $pcbc,
 		  },$class;
 }
 
@@ -190,11 +195,12 @@ sub crypt (\$$){
 
     foreach my $block (@blocks) {
       if ($d) { # decrypting
-	$result .= $iv ^ $self->{'crypt'}->decrypt($block);
-	$iv = $block;
+	$result .= $iv = $iv ^ $self->{'crypt'}->decrypt($block);
+	$iv = $block unless $self->{pcbc};
       } else { # encrypting
 	$result .= $iv = $self->{'crypt'}->encrypt($iv ^ $block);
       }
+      $iv = $iv ^ $block if $self->{pcbc};
     }
     $self->{'civ'} = $iv;	        # remember the iv
     return $result;
@@ -204,7 +210,7 @@ sub crypt (\$$){
 sub finish (\$) {
     my $self = shift;
     my $bs = $self->{'blocksize'};
-    my $block = $self->{'buffer'};
+    my $block = $self->{'buffer'} || '';
 
     $self->{civ} ||= '';
 
@@ -230,6 +236,7 @@ sub finish (\$) {
 
 sub _standard_padding ($$$) {
   my ($b,$bs,$decrypt) = @_;
+  $b ||= '';
   if ($decrypt eq 'd') {
      substr($b, -unpack("C",substr($b,-1)))='';
      return $b;
@@ -240,6 +247,7 @@ sub _standard_padding ($$$) {
 
 sub _space_padding ($$$) {
   my ($b,$bs,$decrypt) = @_;
+  $b ||= '';
   if ($decrypt eq 'd') {
      $b=~ s/ *$//s;
      return $b;
@@ -249,6 +257,7 @@ sub _space_padding ($$$) {
 
 sub _null_padding ($$$) {
   my ($b,$bs,$decrypt) = @_;
+  $b ||= '';
   if ($decrypt eq 'd') {
      $b=~ s/\0*$//s;
      return $b;
@@ -258,6 +267,7 @@ sub _null_padding ($$$) {
 
 sub _oneandzeroes_padding ($$$) {
   my ($b,$bs,$decrypt) = @_;
+  $b ||= '';
   if ($decrypt eq 'd') {
      my $hex = unpack("H*", $b);
      $hex =~ s/80*$//s;
@@ -267,20 +277,16 @@ sub _oneandzeroes_padding ($$$) {
 }
 
 sub get_initialization_vector (\$) {
-	my $self = shift;
-	return $self->{'iv'};
+  my $self = shift;
+  return $self->{'iv'};
 }
 
 sub set_initialization_vector (\$$) {
-	my $self = shift;
-	my $iv = shift;
+  my $self = shift;
+  my $iv = shift;
 	
-	croak "Initialization vector must be 8 bytes" unless (length($iv) == 8);
-	
-	if (exists($self->{'iv'})) {
-		carp "Initialization vector already set.  Re-setting is not recommended. (doing it anyways)";
-	}
-	$self->{'iv'} = $iv;
+  croak "Initialization vector must be 8 bytes" unless (length($iv) == 8);
+  $self->{'iv'} = $iv;
 }
 
 1;
@@ -298,7 +304,8 @@ Crypt::CBC - Encrypt Data with Cipher Block Chaining Mode
                               'iv'              => '$KJh#(}q',
                               'regenerate_key'  => 0,   # default true
                               'padding'         => 'space',
-                              'prepend_iv'      => 0
+                              'prepend_iv'      => 0,
+			      'pcbc'            => 1  #default 0
                            });
   
   $ciphertext = $cipher->encrypt("This data is hush hush");
@@ -364,6 +371,12 @@ by default the ciphertext will be prepended with "RandomIVE<lt>IVE<gt>"
 (16 bytes). To disable this, set 'prepend_iv' to a false value. The 
 padding method can be specified by the 'padding' option. If no padding 
 method is specified, PKCS#5 ("standard") padding is assumed.
+
+Instead of the default cipher-block-chaining mode a modified algorithm
+PCBC can be used. It provides better error propagation characteristics
+than CBC encryption. To switch it on you have to set 'pcbc' to a true value.
+The PCBC mode is part of the des library and required e.g. in Kerberos4
+authentication procedures as mentioned in RFC 2222 and other documents.
 
 =head2 start()
 

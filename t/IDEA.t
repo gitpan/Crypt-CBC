@@ -9,7 +9,7 @@ if ($@) {
     exit;
 }
 
-print "1..5\n";
+print "1..31\n";
 
 sub test {
     local($^W) = 0;
@@ -32,3 +32,15 @@ test(2,$i = Crypt::CBC->new('secret','IDEA'),"Couldn't create new object");
 test(3,$c = $i->encrypt($test_data),"Couldn't encrypt");
 test(4,$p = $i->decrypt($c),"Couldn't decrypt");
 test(5,$p eq $test_data,"Decrypted ciphertext doesn't match plaintext");
+
+# now try various truncations of the whole
+for (my $c=1;$c<=7;$c++) {
+  substr($test_data,-$c) = '';  # truncate
+  test(5+$c,$i->decrypt($i->encrypt($test_data)) eq $test_data);
+}
+
+# now try various short strings
+for (my $c=0;$c<=18;$c++) {
+  $test_data = 'i' x $c;
+  test (13+$c,$i->decrypt($i->encrypt($test_data)) eq $test_data);
+}

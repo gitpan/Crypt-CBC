@@ -2,9 +2,9 @@
 
 use lib '..','../blib/lib','.','./blib/lib';
 
-eval "use Crypt::DES()";
+eval "use Crypt::Blowfish()";
 if ($@) {
-    warn "Crypt::DES not installed\n";
+    warn "Crypt::Blowfish not installed\n";
     print "1..0\n";
     exit;
 }
@@ -28,7 +28,7 @@ END
 eval "use Crypt::CBC";
 
 test(1,!$@,"Couldn't load module");
-test(2,$i = Crypt::CBC->new('secret','DES'),"Couldn't create new object");
+test(2,$i = Crypt::CBC->new('secret','Blowfish'),"Couldn't create new object");
 test(3,$c = $i->encrypt($test_data),"Couldn't encrypt");
 test(4,$p = $i->decrypt($c),"Couldn't decrypt");
 test(5,$p eq $test_data,"Decrypted ciphertext doesn't match plaintext");

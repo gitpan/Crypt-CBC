@@ -28,7 +28,7 @@ open (STDOUT,">$options{'o'}") || die "$options{'o'}: $!"
 
 my $key = $options{'k'} || get_key();
 # DES used by default
-my $cipher = CBC->new($key) || die "Couldn't create CBC object";  
+my $cipher = Crypt::CBC->new($key) || die "Couldn't create CBC object";  
 my $decrypt = $options{'d'} and !$options{'e'};
 $cipher->start($decrypt ? 'decrypt' : 'encrypt');
 

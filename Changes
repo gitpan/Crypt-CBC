@@ -1,5 +1,14 @@
 Revision history for Perl extension Crypt::CBC.
 
+1.22	Wed Jan 26 19:07:30 EST 2000
+	- Added support for Crypt::Blowfish (available from www.cryptix.org)
+	- Fixed failure to encrypt data files < 8 bytes
+	- Fixed -w warning when decrypting data files < 8 bytes
+	
+1.21	Mon Nov 29 17:11:17 EST 1999
+	- Generate random initialization vector.
+	- Use same encryption format as Ben Laurie's patches to OpenSSL (versions >= 0.9.5)
+
 1.20  Sun Dec 20 3:58:01 1998 MET
 	- Folded in bug fixes from Devin Carraway <aqua@sonic.net>
 	(chiefly having to do with finish() being called with a

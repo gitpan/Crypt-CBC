@@ -4,20 +4,27 @@ use MD5;
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '1.20';
+$VERSION = '1.22';
 
 sub new ($$;$) {
     my $class = shift;
     my ($key,$cipher) = @_;
-    croak "Please provide an encryption/decryption key" unless $key;
-    $cipher = 'DES' unless $cipher;
-    my $package = $cipher=~/^Crypt/ ? $cipher : "Crypt::$cipher";
-    eval "use $package()";
-    croak "Couldn't load $package: $@" if $@;
+    croak "Please provide an encryption/decryption key" unless defined $key;
+    $cipher = 'Crypt::DES' unless $cipher;
+    $cipher = $cipher=~/^Crypt::/ ? $cipher : "Crypt::$cipher";
+    eval "require $cipher";
+    croak "Couldn't load $cipher: $@" if $@;
 
-    $cipher=~s/^Crypt:://;  # The crypt modules are totally inconsistent!
+    # some crypt modules use the class Crypt::, and others don't
+    $cipher =~ s/^Crypt::// unless $cipher->can('keysize');
     my $ks = $cipher->keysize;
     my $bs = $cipher->blocksize;
+
+    # Some of the cipher modules are busted and don't report the
+    # keysize (well, Crypt::Blowfish in any case).  If we detect
+    # this, and find the blowfish module in use, then assume 56.
+    # Otherwise assume the least common denominator of 8.
+    $ks = $cipher =~ /blowfish/i ? 56 : 8 unless $ks > 0;
 
     # the real key is computed from the first N bytes of the
     # MD5 hash of the provided key.
@@ -26,6 +33,10 @@ sub new ($$;$) {
 	$material .= MD5->hash($material);
     }
 	
+    # Original implementation of SSLEay used part of the key for the IV
+    # which is not a good idea.  The decryption iv is taken from
+    # the second byte of the file if present, tossing the one stored
+    # here.
     my ($k,$iv) = $material =~ /(.{$ks})(.{$bs})/os;
 
     return bless {'crypt' => $cipher->new($k),
@@ -66,7 +77,6 @@ sub start (\$$) {
     croak "Specify <e>ncryption or <d>ecryption" 
 	unless $operation=~/^[ed]/i;
     $self->{'buffer'} = '';
-    $self->{'civ'} = $self->{'iv'};
     $self->{'decrypt'} = $operation=~/^d/i;
 }
 
@@ -75,27 +85,41 @@ sub crypt (\$$){
     my $self = shift;
     my $data = shift;
     croak "crypt() called without a preceding start()"
-	unless $self->{'civ'};
+      unless exists $self->{'buffer'};
+    
+    my $result = '';
+
+    if ( !$self->{'civ'} ) {
+      if ($self->{'decrypt'}) {
+	if (my ($iv) = $data=~ /^RandomIV(.{8})/s) {
+	  $self->{'iv'} = $iv;
+	  substr($data,0,16) = ''; #truncate
+	}
+      } else { # encrypting
+	$self->{'iv'} = pack("C*",map {rand(255)} 1..8);
+	$result = 'RandomIV';
+	$result .= $self->{'iv'};
+      }
+      $self->{'civ'} = $self->{'iv'};
+    }
 
     $self->{'buffer'} .= $data;
     my $iv = $self->{'civ'};
     my $bs = $self->{'crypt'}->blocksize;
     my $d = $self->{'decrypt'};
 
-    return '' unless length($self->{'buffer'}) >= $bs;
-    my @blocks = $self->{'buffer'}=~/(.{$bs})/ogs;
+    return $result unless length($self->{'buffer'}) >= $bs;
+    my @blocks = $self->{'buffer'}=~/(.{1,$bs})/ogs;
 
+    $self->{'buffer'} = '';
     if ($d) {  # when decrypting, always leave a free block at the end
-	$self->{'buffer'} = pop(@blocks) . $';
+	$self->{'buffer'} = length($blocks[-1]) < $bs ? join '',splice(@blocks,-2) : pop(@blocks);
     } else {
-	$self->{'buffer'} = $';  # what's left over
+	$self->{'buffer'} = pop @blocks if length($blocks[-1]) < $bs;  # what's left over
     }
-    $self->{'buffer'} ||= '';
-#    warn "CBC::crypt buffer = ".$self->{'buffer'};
-    my ($result);
+
     foreach my $block (@blocks) {
 	if ($d) { # decrypting
-#	    warn "CBC dec block len = ".length($block);
 	    $result .= $iv ^ $self->{'crypt'}->decrypt($block);
 	    $iv = $block;
 	} else { # encrypting
@@ -103,7 +127,6 @@ sub crypt (\$$){
 	}
     }
     $self->{'civ'} = $iv;	        # remember the iv
-#    warn "pe buffer = ".$self->{'buffer'};
     return $result;
 }
 
@@ -111,15 +134,13 @@ sub crypt (\$$){
 sub finish (\$) {
     my $self = shift;
     my $bs = $self->{'crypt'}->blocksize;
-    my $block = $self->{'buffer'} || '';
+    my $block = $self->{'buffer'};
 
-#    warn "civ = $self->{civ}";
    $self->{civ} ||= '';
     
     my $result;
     if ($self->{'decrypt'}) { #decrypting	
-#	warn "CBC finish decryption blocklen = ".length($block);
-	$block = unpack("a$bs",$block); # pad and truncate to block size
+	$block = pack("a$bs",$block); # pad and truncate to block size
 	if (length($block)) {	
 		$result = $self->{'civ'} ^ $self->{'crypt'}->decrypt($block);
 		substr($result,-unpack("C",substr($result,-1)))='';	
@@ -128,7 +149,6 @@ sub finish (\$) {
 	}
     } else { # encrypting
 	# in case we had an even multiple of bs
-#	warn "CBC finish encryption blocklen = ".length($block);
 	$block = pack("C*",($bs)x$bs) unless length($block);  
 	if (length($block)) {
 

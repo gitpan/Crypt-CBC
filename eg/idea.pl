@@ -27,7 +27,7 @@ open(STDOUT,">$options{'o'}") or die "$options{'o'}: $!"
     if $options{'o'};
 
 my $key = $options{'k'} || get_key();
-my $cipher = CBC->new($key,'IDEA') || die "Couldn't create CBC object";  
+my $cipher = Crypt::CBC->new($key,'IDEA') || die "Couldn't create CBC object";  
 my $decrypt = $options{'d'} and !$options{'e'};
 $cipher->start($decrypt ? 'decrypt' : 'encrypt');
 

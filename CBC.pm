@@ -4,7 +4,7 @@ use MD5;
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '1.22';
+$VERSION = '1.23';
 
 sub new ($$;$) {
     my $class = shift;

@@ -6,5 +6,6 @@ Makefile.PL
 t/DES.t
 t/IDEA.t
 t/Blowfish.t
+t/Blowfish_PP.t
 eg/des.pl
 eg/idea.pl

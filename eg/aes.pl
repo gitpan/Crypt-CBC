@@ -9,27 +9,29 @@ use strict vars;
 my %options;
 
 getopts('edk:i:o:',\%options) || die <<USAGE;
-Usage: des.pl [options] file1 file2 file3...
-   DES encrypt/decrypt files using Cipher Block Chaining mode.
+Usage: aes.pl [options] file1 file2 file3...
+   AES encrypt/decrypt files using Cipher Block Chaining mode.
 Options:
        -e        encrypt (default)
        -d        decrypt
        -k 'key'  provide key on command line
        -i file   input file
        -o file   output file
+
+(NB: The Rijndael cipher is the basis for AES)
 USAGE
     ;
 
 @ARGV = $options{'i'} if $options{'i'};
 push(@ARGV,'-') unless @ARGV;
-open (STDOUT,">$options{'o'}") || die "$options{'o'}: $!"
+open(STDOUT,">$options{'o'}") or die "$options{'o'}: $!"
     if $options{'o'};
 
 my $key = $options{'k'} || get_key();
-# DES used by default
-my $cipher = Crypt::CBC->new(-key   => $key,
-			     -cipher=> 'DES',
-			     -salt  => 1) || die "Couldn't create CBC object";  
+my $cipher = Crypt::CBC->new(-key    =>  $key,
+			     -cipher => 'Rijndael',
+			     -salt   => 1,
+			    ) || die "Couldn't create CBC object";
 my $decrypt = $options{'d'} and !$options{'e'};
 $cipher->start($decrypt ? 'decrypt' : 'encrypt');
 
@@ -49,7 +51,7 @@ sub get_key {
     my ($key1,$key2);
     system "stty -echo </dev/tty";
     do {
-	print STDERR "DES key: ";
+	print STDERR "AES key: ";
         chomp($key1 = <TTY>);
 	print STDERR "\r\nRe-type key: ";
         chomp($key2 = <TTY>);

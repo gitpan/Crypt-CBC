@@ -41,8 +41,8 @@ test(\$tnum,!$@,"Couldn't load module");
 for my $mod (@in) {
   for my $pad (@pads) {
     my $cipher = Crypt::CBC->new(-key => 'secret',
-				  -cipher => $mod,
-				  -padding => $pad
+				 -cipher => $mod,
+				 -padding => $pad,
 				);
     for my $length (1..128) {
       my $test_data = 'a'x$length . '0';

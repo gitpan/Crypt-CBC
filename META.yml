@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Crypt-CBC
-version:      2.15
+version:      2.17
 version_from: CBC.pm
 installdirs:  site
 requires:

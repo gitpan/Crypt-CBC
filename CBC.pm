@@ -4,7 +4,7 @@ use Digest::MD5 'md5';
 use Carp;
 use strict;
 use vars qw($VERSION);
-$VERSION = '2.22';
+$VERSION = '2.24';
 
 use constant RANDOM_DEVICE => '/dev/urandom';
 
@@ -422,15 +422,23 @@ sub _get_random_bytes {
   } else {
     $result = pack("C*",map {rand(256)} 1..$length);
   }
-  $result;
+  # Clear taint and check length
+  $result =~ /^(.{$length})$/s or croak "Invalid length while gathering $length randim bytes";
+  return $1;
 }
 
 sub _standard_padding ($$$) {
   my ($b,$bs,$decrypt) = @_;
   $b = length $b ? $b : '';
   if ($decrypt eq 'd') {
-     substr($b, -unpack("C",substr($b,-1)))='';
-     return $b;
+    my $pad_length = unpack("C",substr($b,-1));
+
+    # sanity check for implementations that don't pad correctly
+    return $b unless $pad_length >= 0 && $pad_length <= $bs;
+    my @pad_chars = unpack("C*",substr($b,-$pad_length));
+    return $b if grep {$pad_length != $_} @pad_chars;
+
+    return substr($b,0,$bs-$pad_length);
   }
   my $pad = $bs - length($b) % $bs;
   return $b . pack("C*",($pad)x$pad);

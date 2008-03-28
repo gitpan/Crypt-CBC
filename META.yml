@@ -1,12 +1,11 @@
---- #YAML:1.0
-name:                Crypt-CBC
-version:             2.24
-abstract:            ~
-license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.32
-distribution_type:   module
-requires:     
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Crypt-CBC
+version:      2.27
+version_from: CBC.pm
+installdirs:  site
+requires:
     Digest::MD5:                   2.00
-meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30_01

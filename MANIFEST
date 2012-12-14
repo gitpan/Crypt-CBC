@@ -22,3 +22,4 @@ t/null_data.t
 t/parameters.t
 t/preexisting.t
 
+META.json                                Module JSON meta-data (added by MakeMaker)
